@@ -55,6 +55,23 @@ class Status(models.Model):
         return self.title
 
 
+class RoadNumber(models.Model):
+    title = models.CharField(max_length=155)
+    date = models.DateField(auto_now_add=True)
+
+    def __str__(self):
+        return self.title
+
+
+class PlotPosition(models.Model):
+    plot_no = models.CharField(max_length=199, unique=True)
+    road_no = models.ForeignKey(RoadNumber, on_delete=models.CASCADE)
+    date = models.DateField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.id}=={self.plot_no}=={self.road_no}=={self.date}"
+
+
 class Member(models.Model):
     member_email = models.ForeignKey(Profile, on_delete=models.CASCADE)
     member_firstname = models.CharField(max_length=200)
