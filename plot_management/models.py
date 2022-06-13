@@ -47,5 +47,45 @@ class Profile(models.Model):
         return self.prouser.email
 
 
+class Status(models.Model):
+    title = models.CharField(max_length=199)
+    date = models.DateField(auto_now_add=True)
+
+    def __str__(self):
+        return self.title
+
+
+class Member(models.Model):
+    member_email = models.ForeignKey(Profile, on_delete=models.CASCADE)
+    member_firstname = models.CharField(max_length=200)
+    member_lastname = models.CharField(max_length=200)
+    member_nid = models.CharField(max_length=200)
+    member_phone = models.CharField(max_length=200)
+    member_status = models.ForeignKey(Status, on_delete=models.CASCADE, default=3)
+
+    def __str__(self):
+        return f"{self.member_email}=={self.member_firstname}=={self.member_lastname}=={self.member_nid}"
+
+
+class PaymentStatus(models.Model):
+    member_email = models.ForeignKey(Profile, on_delete=models.CASCADE)
+    payment_complete = models.BooleanField(default=False)
+    date = models.DateField(auto_now_add=True)
+
+    def __str__(self):
+        return self.member_email
+
+
+class OfflinePayment(models.Model):
+    member_email = models.ForeignKey(Profile, on_delete=models.CASCADE)
+    cheque_number = models.CharField(max_length=255, unique=True)
+    account_no = models.CharField(max_length=255)
+    member_nid = models.CharField(max_length=200)
+    plot_no = models.CharField(max_length=199)
+    road_no = models.CharField(max_length=199)
+    payment_date = models.DateField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.member_email}=={self.account_no}=={self.plot_no}=={self.road_no}=={self.payment_date}"
 
 
