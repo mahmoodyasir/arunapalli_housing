@@ -70,7 +70,7 @@ class PlotPosition(models.Model):
     date = models.DateField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.id}=={self.plot_no}=={self.road_no}=={self.date}"
+        return self.plot_no
 
 
 class OnetimeMembershipPayment(models.Model):
@@ -94,7 +94,7 @@ class AdminUserInfo(models.Model):
 
 
 class Member(models.Model):
-    member_email = models.ForeignKey(Profile, on_delete=models.CASCADE)
+    member_email = models.OneToOneField(Profile, on_delete=models.CASCADE)
     member_firstname = models.CharField(max_length=200, blank=True, null=True)
     member_lastname = models.CharField(max_length=200, blank=True, null=True)
     member_nid = models.CharField(unique=True, max_length=200, blank=True, null=True)
@@ -103,8 +103,7 @@ class Member(models.Model):
     onetime_payment = models.BooleanField(default=False)
 
     def __str__(self):
-        return f"{self.member_email}=={self.member_firstname}==" \
-               f"{self.member_lastname}=={self.member_nid}=={self.onetime_payment}"
+        return f"{self.member_email}"
 
 
 class PaymentStatus(models.Model):
@@ -121,11 +120,40 @@ class OfflinePayment(models.Model):
     cheque_number = models.CharField(max_length=255, unique=True)
     account_no = models.CharField(max_length=255)
     member_nid = models.CharField(max_length=200)
-    plot_no = models.CharField(max_length=199)
-    road_no = models.CharField(max_length=199)
+    plot_no = models.ForeignKey(PlotPosition, on_delete=models.CASCADE)
+    road_no = models.ForeignKey(RoadNumber, on_delete=models.CASCADE)
     payment_date = models.DateField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.member_email}=={self.account_no}=={self.plot_no}=={self.road_no}=={self.payment_date}"
+
+
+class PaymentDateFix(models.Model):
+    start_date = models.DateField(null=True,blank=True)
+    end_date = models.DateField(null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.start_date}=={self.end_date}"
+
+
+class TrackPlotOwnership(models.Model):
+    owner_email = models.ForeignKey(Member, on_delete=models.CASCADE)
+    plot_no = models.ForeignKey(PlotPosition, on_delete=models.CASCADE)
+    road_no = models.ForeignKey(RoadNumber, on_delete=models.CASCADE)
+    date = models.DateField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.owner_email}=={self.plot_no}=={self.road_no}=={self.date}"
+
+
+class TrackMembershipPayment(models.Model):
+    member_email = models.CharField(max_length=255, null=True, blank=True)
+    member_status = models.CharField(max_length=199, null=True, blank=True)
+    plot_no = models.CharField(max_length=155, null=True, blank=True)
+    road_no = models.CharField(max_length=155, null=True, blank=True)
+    date = models.DateField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.member_email}=={self.member_status}=={self.plot_no}=={self.road_no}=={self.date}"
 
 
