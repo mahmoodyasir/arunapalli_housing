@@ -6,7 +6,7 @@ from .models import *
 
 class StatusAdmin(admin.ModelAdmin):
     search_fields = ['id']
-    list_display = ['id', 'title']
+    list_display = ['id', 'title', 'payment_range']
     list_per_page = 10
 
 
@@ -16,3 +16,10 @@ admin.site.register(Status, StatusAdmin)
 admin.site.register(Member)
 admin.site.register(PaymentStatus)
 admin.site.register(OfflinePayment)
+admin.site.register(RoadNumber)
+admin.site.register(PlotPosition)
+admin.site.register(OnetimeMembershipPayment)
+admin.site.register(AdminUserInfo)
+
+
+

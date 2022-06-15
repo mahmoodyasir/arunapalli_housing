@@ -13,7 +13,7 @@ class UserManager(BaseUserManager):
         user = self.model(email=email,  **kwargs)
         user.set_password(password)
         user.is_superuser = False
-        user.is_staff = True
+        user.is_staff = False
         user.save(using=self._db)
         return user
 
@@ -49,6 +49,7 @@ class Profile(models.Model):
 
 class Status(models.Model):
     title = models.CharField(max_length=199)
+    payment_range = models.CharField(max_length=200)
     date = models.DateField(auto_now_add=True)
 
     def __str__(self):
@@ -72,16 +73,38 @@ class PlotPosition(models.Model):
         return f"{self.id}=={self.plot_no}=={self.road_no}=={self.date}"
 
 
-class Member(models.Model):
-    member_email = models.ForeignKey(Profile, on_delete=models.CASCADE)
-    member_firstname = models.CharField(max_length=200)
-    member_lastname = models.CharField(max_length=200)
-    member_nid = models.CharField(max_length=200)
-    member_phone = models.CharField(max_length=200)
-    member_status = models.ForeignKey(Status, on_delete=models.CASCADE, default=3)
+class OnetimeMembershipPayment(models.Model):
+    amount = models.CharField(max_length=199)
+    date = models.DateField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.member_email}=={self.member_firstname}=={self.member_lastname}=={self.member_nid}"
+        return f"{self.amount}=={self.date}"
+
+
+class AdminUserInfo(models.Model):
+    admin_email = models.OneToOneField(User, on_delete=models.CASCADE)
+    admin_firstname = models.CharField(max_length=200, blank=True, null=True)
+    admin_lastname = models.CharField(max_length=200, blank=True, null=True)
+    admin_phone = models.CharField(max_length=200, blank=True, null=True)
+    admin_nid = models.CharField(max_length=200, blank=True, null=True)
+    date = models.DateField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.admin_email}=={self.admin_firstname}=={self.admin_lastname}=={self.date}"
+
+
+class Member(models.Model):
+    member_email = models.ForeignKey(Profile, on_delete=models.CASCADE)
+    member_firstname = models.CharField(max_length=200, blank=True, null=True)
+    member_lastname = models.CharField(max_length=200, blank=True, null=True)
+    member_nid = models.CharField(unique=True, max_length=200, blank=True, null=True)
+    member_phone = models.CharField(max_length=200, blank=True, null=True)
+    member_status = models.ForeignKey(Status, on_delete=models.CASCADE, default=3)
+    onetime_payment = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.member_email}=={self.member_firstname}==" \
+               f"{self.member_lastname}=={self.member_nid}=={self.onetime_payment}"
 
 
 class PaymentStatus(models.Model):
