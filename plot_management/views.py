@@ -116,3 +116,61 @@ class RegisterView(views.APIView):
             serializers.save()
             return Response({"error": False, "message": f"User is created for '{serializers.data['email']}'"})
         return Response({"error": True, "message": "Something is wrong"})
+
+# General Model Serializing
+
+
+# class MemberAPI(views.APIView):
+#     def get(self, request):
+#         query = Member.objects.all()
+#         serializer = MemberSerializer(query, many=True)
+#         sub_serial = UserSerializer(query, many=True)
+#         serializer_data = serializer.data
+#         all_data = []
+#         serializer_data["sub_serial"] = sub_serial.data
+#         all_data.append(serializer_data)
+#         return Response(all_data)
+
+
+class MemberAPI(views.APIView):
+
+    def get(self, request):
+        try:
+            query = Member.objects.all()
+            query2 = Member.objects.all()
+            serializer = MemberSerializer(query, many=True)
+            serializer_data = serializer.data
+            all_data = []
+            serializer_user = UserSerializer(query2, many=True)
+            serializer_data["email_id"] = serializer_user.data
+            all_data.append(serializer_data)
+            response_msg = {"error": False, "data": all_data}
+        except:
+            response_msg = {"error": True, "message": "Something is wrong !! Try again....."}
+        return Response(response_msg)
+
+
+class ProfileView(views.APIView):
+    def get(self, request):
+        query = Profile.objects.all()
+        serializer = ProfileSerializers(query, many=True)
+        return Response(serializer.data)
+
+
+class StatusView(views.APIView):
+    def get(self, request):
+        query = Status.objects.all()
+        serializer = StatusSerializer(query, many=True)
+        return Response(serializer.data)
+
+
+class AddMember(views.APIView):
+    def post(self, request):
+        data = request.data
+        serializers = MemberSerializer(data=data, context={"request": request})
+
+        if serializers.is_valid(raise_exception=True):
+            serializers.save()
+
+            return Response({"error": False, "message": "Member Added"})
+        return Response({"error": True, "message": "Something is wrong"})

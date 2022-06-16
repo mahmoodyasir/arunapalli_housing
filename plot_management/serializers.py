@@ -113,3 +113,9 @@ class MyAuthTokenSerializer(serializers.Serializer):
         attrs['user'] = user
         return attrs
 
+
+class StatusSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Status
+        fields = "__all__"
+        depth = 1
