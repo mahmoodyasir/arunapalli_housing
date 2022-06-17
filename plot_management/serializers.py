@@ -119,3 +119,26 @@ class StatusSerializer(serializers.ModelSerializer):
         model = Status
         fields = "__all__"
         depth = 1
+
+
+class PlotPositionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PlotPosition
+        fields = "__all__"
+        depth = 1
+
+
+class RoadNumberSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RoadNumber
+        fields = "__all__"
+        depth = 1
+
+
+class PlotNumberSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PlotNumber
+        fields = "__all__"
+        depth = 1
+
+

@@ -19,6 +19,11 @@ urlpatterns = [
     path('profileview/', ProfileView.as_view(), name="profileview"),
     path('statusview/', StatusView.as_view(), name="statusview"),
     path('add_member/', AddMember.as_view(), name="add_member"),
+    path('plotpositionview/', PlotPositionView.as_view(), name="plotview"),
+    path('roadplotview/', RoadPlotView.as_view(), name="roadplotview"),
+    path('add_plot_road/', AddPlotRoad.as_view(), name="add_plot_road"),
+    path('plot_add/', PlotAdd.as_view(), name="plot_add"),
+    path('road_add/', RoadAdd.as_view(), name="road_add"),
     # path('product/', ProductView.as_view(), name="product"),
     # path('product/<int:id>/', ProductView.as_view(), name="product"),
 

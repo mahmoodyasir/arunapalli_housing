@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from rest_framework import generics, mixins, viewsets, views, status
 from rest_framework.response import Response
+from django.http import JsonResponse
 
 from .models import *
 from .serializers import *
@@ -164,13 +165,71 @@ class StatusView(views.APIView):
         return Response(serializer.data)
 
 
+class PlotPositionView(views.APIView):
+    def get(self, request):
+        query = PlotPosition.objects.all().order_by("-id")
+        serializer = PlotPositionSerializer(query, many=True)
+        return Response(serializer.data)
+
+
+class RoadPlotView(views.APIView):
+    def get(self, request):
+        query1 = PlotNumber.objects.all().order_by("-id").values()
+        query2 = RoadNumber.objects.all().order_by("-id").values()
+
+        return Response({
+            'plot': query1,
+            'road': query2
+        })
+
+
 class AddMember(views.APIView):
     def post(self, request):
         data = request.data
         serializers = MemberSerializer(data=data, context={"request": request})
 
         if serializers.is_valid(raise_exception=True):
+            # mem_stat = data["member_status"]
             serializers.save()
+            # member_obj = Member.objects.last()
+            # member_obj.member_status = Status.objects.get(id=mem_stat)
+            # member_obj.save()
 
             return Response({"error": False, "message": "Member Added"})
+        return Response({"error": True, "message": "Something is wrong"})
+
+
+class AddPlotRoad(views.APIView):
+    def post(self, request):
+        data = request.data
+        serializers = PlotPositionSerializer(data=data, context={"request": request})
+
+        if serializers.is_valid(raise_exception=True):
+            serializers.save()
+
+            return Response({"error": False, "message": "Plot and Road Added"})
+        return Response({"error": True, "message": "Something is wrong"})
+
+
+class PlotAdd(views.APIView):
+    def post(self, request):
+        data = request.data
+        serializers = PlotNumberSerializer(data=data, context={"request": request})
+
+        if serializers.is_valid(raise_exception=True):
+            serializers.save()
+
+            return Response({"error": False, "message": "Plot Added"})
+        return Response({"error": True, "message": "Something is wrong"})
+
+
+class RoadAdd(views.APIView):
+    def post(self, request):
+        data = request.data
+        serializers = RoadNumberSerializer(data=data, context={"request": request})
+
+        if serializers.is_valid(raise_exception=True):
+            serializers.save()
+
+            return Response({"error": False, "message": "Road Added"})
         return Response({"error": True, "message": "Something is wrong"})

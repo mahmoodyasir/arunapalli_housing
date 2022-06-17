@@ -73,7 +73,7 @@ class PlotNumber(models.Model):
 
 
 class PlotPosition(models.Model):
-    plot_no = models.CharField(max_length=199, null=True, blank=True)
+    plot_no = models.CharField(max_length=199, null=True, blank=True, unique=True)
     road_no = models.CharField(max_length=199, null=True, blank=True)
     date = models.DateField(auto_now_add=True)
 
@@ -107,7 +107,6 @@ class Member(models.Model):
     member_lastname = models.CharField(max_length=200, blank=True, null=True)
     member_nid = models.CharField(unique=True, max_length=200, blank=True, null=True)
     member_phone = models.CharField(max_length=200, blank=True, null=True)
-    member_status = models.ForeignKey(Status, on_delete=models.CASCADE, default=3)
     onetime_payment = models.BooleanField(default=False)
 
     def __str__(self):

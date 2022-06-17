@@ -36,7 +36,7 @@ class TrackPlotOwnershipAdmin(admin.ModelAdmin):
 
 class MemberAdmin(admin.ModelAdmin):
     search_fields = ['id']
-    list_display = ['id', 'email', 'member_firstname', 'member_lastname', 'member_nid', 'member_phone', 'member_status', 'onetime_payment']
+    list_display = ['id', 'email', 'member_firstname', 'member_lastname', 'member_nid', 'member_phone', 'onetime_payment']
     list_per_page = 10
 
 
