@@ -127,8 +127,9 @@ class OfflinePayment(models.Model):
     cheque_number = models.CharField(max_length=255, unique=True)
     account_no = models.CharField(max_length=255)
     member_nid = models.CharField(max_length=200)
-    plot_no = models.ForeignKey(PlotPosition, on_delete=models.CASCADE)
-    road_no = models.ForeignKey(RoadNumber, on_delete=models.CASCADE)
+    plot_no = models.CharField(max_length=199, null=True, blank=True)
+    road_no = models.CharField(max_length=199, null=True, blank=True)
+    member_status = models.ForeignKey(Status, on_delete=models.CASCADE, default=3)
     paid_amount = models.CharField(max_length=255, null=True, blank=True)
     payment_date = models.DateField(auto_now_add=True)
 
@@ -145,9 +146,10 @@ class PaymentDateFix(models.Model):
 
 
 class TrackPlotOwnership(models.Model):
-    owner_email = models.ForeignKey(Member, on_delete=models.CASCADE)
-    plot_no = models.ForeignKey(PlotPosition, on_delete=models.CASCADE)
-    road_no = models.ForeignKey(RoadNumber, on_delete=models.CASCADE)
+    owner_email = models.ForeignKey(Member, on_delete=models.CASCADE, null=True, blank=True)
+    plot_no = models.CharField(max_length=199, null=True, blank=True)
+    road_no = models.CharField(max_length=199, null=True, blank=True)
+    member_status = models.ForeignKey(Status, on_delete=models.CASCADE, default=3)
     date = models.DateField(auto_now_add=True)
 
     def __str__(self):

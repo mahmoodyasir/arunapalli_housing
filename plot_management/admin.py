@@ -30,7 +30,7 @@ class PlotPositionAdmin(admin.ModelAdmin):
 
 class TrackPlotOwnershipAdmin(admin.ModelAdmin):
     search_fields = ['id']
-    list_display = ['id', 'owner_email', 'plot_no', 'road_no', 'date']
+    list_display = ['id', 'owner_email', 'plot_no', 'road_no', 'member_status', 'date']
     list_per_page = 10
 
 

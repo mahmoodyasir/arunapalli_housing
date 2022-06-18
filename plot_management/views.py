@@ -27,8 +27,8 @@ class MemberView(views.APIView):
 
     def get(self, request):
         try:
-            query = Member.objects.get(member_email__prouser__email=request.user)
-            query2 = User.objects.get(email=request.user)
+            query = Member.objects.get(email=request.user.email)
+            query2 = User.objects.get(email=request.user.email)
             serializer = MemberSerializer(query)
             serializer_data = serializer.data
             all_data = []
@@ -39,6 +39,16 @@ class MemberView(views.APIView):
         except:
             response_msg = {"error": True, "message": "Something is wrong !! Try again....."}
         return Response(response_msg)
+
+
+class AllMemberView(views.APIView):
+    # authentication_classes = [TokenAuthentication, ]
+    # permission_classes = [IsAdminUser, ]
+
+    def get(self, request):
+        query = Member.objects.all()
+        serializer = MemberSerializer(query, many=True)
+        return Response(serializer.data)
 
 
 class AdminProfileView(views.APIView):
@@ -233,3 +243,35 @@ class RoadAdd(views.APIView):
 
             return Response({"error": False, "message": "Road Added"})
         return Response({"error": True, "message": "Something is wrong"})
+
+
+class TrackOwnerView(viewsets.ViewSet):
+    def list(self, request):
+        query = TrackPlotOwnership.objects.all().order_by("-id")
+        serializer = TrackPlotOwnershipSerializer(query, many=True)
+        return Response(serializer.data)
+
+    def retrieve(self, request, pk=None):
+        query = TrackPlotOwnership.objects.filter(plot_no=pk)
+        serializer = TrackPlotOwnershipSerializer(query, many=True)
+        return Response(serializer.data)
+
+
+class PlotOwnerAdd(views.APIView):
+    def post(self, request):
+        data = request.data
+        serializers = TrackPlotOwnershipSerializer(data=data, context={"request": request})
+
+        if serializers.is_valid(raise_exception=True):
+            member_email = data["owner_email"]
+            mem_stat = data["member_status"]
+            serializers.save()
+            owner_obj = TrackPlotOwnership.objects.last()
+            owner_obj.owner_email = Member.objects.get(id=member_email)
+            owner_obj.member_status = Status.objects.get(id=mem_stat)
+            owner_obj.save()
+
+            return Response({"error": False, "message": "Owner Added"})
+        return Response({"error": True, "message": "Something is wrong"})
+
+

@@ -142,3 +142,13 @@ class PlotNumberSerializer(serializers.ModelSerializer):
         depth = 1
 
 
+class TrackPlotOwnershipSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TrackPlotOwnership
+        fields = "__all__"
+        depth = 1
+
+
+
+
+
