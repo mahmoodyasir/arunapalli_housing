@@ -149,6 +149,13 @@ class TrackPlotOwnershipSerializer(serializers.ModelSerializer):
         depth = 1
 
 
+class PaymentDateFixSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PaymentDateFix
+        fields = "__all__"
+        depth = 1
+
+
 
 
 

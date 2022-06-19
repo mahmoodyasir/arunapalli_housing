@@ -5,6 +5,7 @@ from .views import obtain_auth_token
 
 route = routers.DefaultRouter()
 route.register("all_owner_view", TrackOwnerView, basename="all_owner_view")
+route.register("date_handle", DateHandle, basename="date_handle")
 # route.register("category", CategoryView, basename="CategoryView")
 
 
@@ -26,6 +27,9 @@ urlpatterns = [
     path('plot_add/', PlotAdd.as_view(), name="plot_add"),
     path('road_add/', RoadAdd.as_view(), name="road_add"),
     path('add_plot_owner/', PlotOwnerAdd.as_view(), name="add_plot_owner"),
+    path('retrieve_payment_info/<str:pk>/', RetrievePaymentView.as_view(), name="retrieve_payment_info"),
+    path('get_plot_owner/', GetPlotWithOwner.as_view(), name="get_plot_owner"),
+    path('offline_payment/', CreateOfflinePayment.as_view(), name="offline_payment"),
     # path('all_owner_view/', TrackOwnerView.as_view(), name="all_owner_view"),
     # path('product/', ProductView.as_view(), name="product"),
     # path('product/<int:id>/', ProductView.as_view(), name="product"),

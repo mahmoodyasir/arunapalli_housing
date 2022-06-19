@@ -18,6 +18,7 @@ from rest_framework.schemas import ManualSchema
 
 from .serializers import MyAuthTokenSerializer
 
+
 # Create your views here.
 
 
@@ -127,6 +128,7 @@ class RegisterView(views.APIView):
             serializers.save()
             return Response({"error": False, "message": f"User is created for '{serializers.data['email']}'"})
         return Response({"error": True, "message": "Something is wrong"})
+
 
 # General Model Serializing
 
@@ -265,13 +267,139 @@ class PlotOwnerAdd(views.APIView):
         if serializers.is_valid(raise_exception=True):
             member_email = data["owner_email"]
             mem_stat = data["member_status"]
+            plot_num = data["plot_no"]
+            query = PlotPosition.objects.get(plot_no=plot_num)
+            road_num = getattr(query, "road_no")
+
             serializers.save()
             owner_obj = TrackPlotOwnership.objects.last()
             owner_obj.owner_email = Member.objects.get(id=member_email)
             owner_obj.member_status = Status.objects.get(id=mem_stat)
+            owner_obj.road_no = road_num
             owner_obj.save()
 
             return Response({"error": False, "message": "Owner Added"})
         return Response({"error": True, "message": "Something is wrong"})
 
 
+class RetrievePaymentView(views.APIView):
+    def get(self, request, pk):
+        member_query = Member.objects.get(email=pk)
+        member_serializer = MemberSerializer(member_query)
+        temp_serializer = member_serializer.data
+        all_data = []
+
+        owner_query = TrackPlotOwnership.objects.filter(owner_email__email=pk)
+        owner_serializer = TrackPlotOwnershipSerializer(owner_query, many=True)
+
+        temp_serializer["owner_plot_info"] = owner_serializer.data
+        all_data.append(temp_serializer)
+
+        return Response(all_data)
+
+
+class GetPlotWithOwner(views.APIView):
+    def post(self, request):
+        data = request.data
+        owner_mail = data["owner_email"]
+        plot_id = data["plot_id"]
+        query = TrackPlotOwnership.objects.filter(owner_email__email=owner_mail).filter(plot_no=plot_id)
+        serializer = TrackPlotOwnershipSerializer(query, many=True)
+        return Response(serializer.data)
+
+
+class CreateOfflinePayment(views.APIView):
+    def post(self, request):
+        try:
+            data = request.data
+
+            email = data["member_email"]
+            email_query = Member.objects.get(email=email)
+
+            cheque = data["cheque_number"]
+            account = data["account_no"]
+            nid = data["member_nid"]
+            plot = data["plot_no"]
+            road = data["road_no"]
+
+            status = data["member_status"]
+            status_query = Status.objects.get(title=status)
+
+            paid = data["paid_amount"]
+
+            query = PaymentDateFix.objects.last()
+            start_date = getattr(query, "start_date")
+            end_date = getattr(query, "end_date")
+            print(email)
+
+            OfflinePayment.objects.create(
+                member_email=email_query,
+                cheque_number=cheque,
+                account_no=account,
+                member_nid=nid,
+                plot_no=plot,
+                road_no=road,
+                member_status=status_query,
+                paid_amount=paid,
+                start_date=start_date,
+                end_date=end_date
+            )
+
+            TrackMembershipPayment.objects.create(
+                member_email=email,
+                member_status=status,
+                plot_no=plot,
+                road_no=road,
+                payment_type="offline"
+            )
+
+            # print(start_date)
+            # print(end_date)
+            # print(email)
+            # print(cheque)
+            # print(account)
+            # print(nid)
+            # print(plot)
+            # print(road)
+            # print(status)
+            # print(paid)
+
+            response_msg = {"error": False, "message": "Your order is complete"}
+        except:
+            response_msg = {"error": True, "message": "Something is wrong ! "}
+
+        return Response(response_msg)
+
+
+class DateHandle(viewsets.ViewSet):
+    def list(self, request):
+        query = PaymentDateFix.objects.all().order_by("-id")
+        serializer = PaymentDateFixSerializer(query, many=True)
+        return Response(serializer.data)
+
+    def create(self, request):
+        try:
+            data = request.data
+            start_date = data["start_date"]
+            end_date = data["end_date"]
+
+            PaymentDateFix.objects.create(
+                start_date=start_date,
+                end_date=end_date
+            )
+
+            response_msg = {"error": False, "message": "Date Added"}
+        except:
+            response_msg = {"error": True, "message": "Something is wrong ! "}
+
+        return Response(response_msg)
+
+    def destroy(self, request, pk=None):
+        try:
+            query = PaymentDateFix.objects.get(id=pk)
+            query.delete()
+            response_msg = {"error": False, "message": "Date is deleted"}
+        except:
+            response_msg = {"error": True, "message": "Something is wrong !!"}
+
+        return Response(response_msg)

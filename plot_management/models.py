@@ -122,27 +122,13 @@ class PaymentStatus(models.Model):
         return self.member_email
 
 
-class OfflinePayment(models.Model):
-    member_email = models.ForeignKey(Member, on_delete=models.CASCADE)
-    cheque_number = models.CharField(max_length=255, unique=True)
-    account_no = models.CharField(max_length=255)
-    member_nid = models.CharField(max_length=200)
-    plot_no = models.CharField(max_length=199, null=True, blank=True)
-    road_no = models.CharField(max_length=199, null=True, blank=True)
-    member_status = models.ForeignKey(Status, on_delete=models.CASCADE, default=3)
-    paid_amount = models.CharField(max_length=255, null=True, blank=True)
-    payment_date = models.DateField(auto_now_add=True)
-
-    def __str__(self):
-        return f"{self.member_email}=={self.account_no}=={self.plot_no}=={self.road_no}=={self.payment_date}"
-
-
 class PaymentDateFix(models.Model):
     start_date = models.DateField(null=True,blank=True)
     end_date = models.DateField(null=True, blank=True)
+    applied_date = models.DateField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.start_date}=={self.end_date}"
+        return f"{self.start_date}=={self.end_date}=={self.applied_date}"
 
 
 class TrackPlotOwnership(models.Model):
@@ -153,7 +139,24 @@ class TrackPlotOwnership(models.Model):
     date = models.DateField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.owner_email}=={self.plot_no}=={self.road_no}=={self.date}"
+        return f"{self.owner_email}=={self.plot_no}=={self.road_no}=={self.member_status}=={self.date}"
+
+
+class OfflinePayment(models.Model):
+    member_email = models.ForeignKey(Member, on_delete=models.CASCADE, null=True, blank=True)
+    cheque_number = models.CharField(max_length=255, unique=True, null=True, blank=True)
+    account_no = models.CharField(max_length=255, null=True, blank=True)
+    member_nid = models.CharField(max_length=200, null=True, blank=True)
+    plot_no = models.CharField(max_length=199, null=True, blank=True)
+    road_no = models.CharField(max_length=199, null=True, blank=True)
+    member_status = models.ForeignKey(Status, on_delete=models.CASCADE, default=3, null=True, blank=True)
+    paid_amount = models.CharField(max_length=255, null=True, blank=True)
+    start_date = models.DateField(null=True, blank=True)
+    end_date = models.DateField(null=True, blank=True)
+    payment_date = models.DateField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.member_email}=={self.account_no}=={self.plot_no}=={self.road_no}=={self.payment_date}"
 
 
 class TrackMembershipPayment(models.Model):
@@ -161,6 +164,7 @@ class TrackMembershipPayment(models.Model):
     member_status = models.CharField(max_length=199, null=True, blank=True)
     plot_no = models.CharField(max_length=155, null=True, blank=True)
     road_no = models.CharField(max_length=155, null=True, blank=True)
+    payment_type = models.CharField(max_length=155, null=True, blank=True)
     date = models.DateField(auto_now_add=True)
 
     def __str__(self):
