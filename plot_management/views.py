@@ -28,13 +28,16 @@ class MemberView(views.APIView):
 
     def get(self, request):
         try:
-            query = Member.objects.get(email=request.user.email)
-            query2 = User.objects.get(email=request.user.email)
+            query = Member.objects.get(email=request.user)
+            query2 = User.objects.get(email=request.user)
+            query3 = Profile.objects.get(prouser=request.user)
             serializer = MemberSerializer(query)
             serializer_data = serializer.data
             all_data = []
             serializer_user = UserSerializer(query2)
+            serializer_profile = ProfileSerializers(query3)
             serializer_data["email_id"] = serializer_user.data
+            serializer_data["profile"] = serializer_profile.data
             all_data.append(serializer_data)
             response_msg = {"error": False, "data": all_data}
         except:
@@ -403,3 +406,60 @@ class DateHandle(viewsets.ViewSet):
             response_msg = {"error": True, "message": "Something is wrong !!"}
 
         return Response(response_msg)
+
+
+class ProfileImageUpdate(views.APIView):
+    authentication_classes = [TokenAuthentication, ]
+    permission_classes = [IsAuthenticated, ]
+
+    def post(self, request):
+        try:
+            user = request.user
+            data = request.data
+            query = Profile.objects.get(prouser=user)
+
+            serializers = ProfileSerializers(query, data=data, context={"request": request})
+            serializers.is_valid(raise_exception=True)
+            serializers.save()
+            response_msg = {"error": False, "message": "Profile Image Updated !!"}
+        except:
+            response_msg = {"error": True, "message": "Profile Image not Update !! Try Again ...."}
+        return Response(response_msg)
+
+
+class UserDataUpdate(views.APIView):
+    authentication_classes = [TokenAuthentication, ]
+    permission_classes = [IsAuthenticated, ]
+
+    def post(self, request):
+        try:
+            user = request.user
+            data = request.data
+
+            user_obj = Member.objects.get(email=user)
+            # print(user_obj)
+            user_obj.member_firstname = data["firstname"]
+            user_obj.member_lastname = data["lastname"]
+            user_obj.member_phone = data["phone"]
+            user_obj.save()
+
+            response_msg = {"error": False, "message": "User Data is Updated"}
+        except:
+            response_msg = {"error": True, "message": "User Data is not update !! Try Again ...."}
+        return Response(response_msg)
+
+
+class ChangePassword(views.APIView):
+    permission_classes = [IsAuthenticated, ]
+    authentication_classes = [TokenAuthentication, ]
+
+    def post(self, request):
+        user = request.user
+        if user.check_password(request.data['old_pass']):
+            user.set_password(request.data['new_pass'])
+            user.save()
+            response_msg = {"message": True}
+            return Response(response_msg)
+        else:
+            response_msg = {"message": False}
+            return Response(response_msg)
