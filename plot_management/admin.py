@@ -48,7 +48,7 @@ class OfflinePaymentAdmin(admin.ModelAdmin):
 
 class TrackMembershipPaymentAdmin(admin.ModelAdmin):
     search_fields = ['id', 'member_email']
-    list_display = ['id', 'member_email', 'member_status', 'plot_no', 'road_no', 'payment_type', 'date']
+    list_display = ['id', 'member_email', 'member_status', 'plot_no', 'road_no', 'payment_type', 'payment_status', 'date']
     list_per_page = 10
 
 

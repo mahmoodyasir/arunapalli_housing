@@ -160,11 +160,12 @@ class OfflinePayment(models.Model):
 
 
 class TrackMembershipPayment(models.Model):
-    member_email = models.CharField(max_length=255, null=True, blank=True)
+    member_email = models.ForeignKey(OfflinePayment, null=True, blank=True, on_delete=models.CASCADE)
     member_status = models.CharField(max_length=199, null=True, blank=True)
     plot_no = models.CharField(max_length=155, null=True, blank=True)
     road_no = models.CharField(max_length=155, null=True, blank=True)
     payment_type = models.CharField(max_length=155, null=True, blank=True)
+    payment_status = models.CharField(max_length=155, null=True, blank=True)
     date = models.DateField(auto_now_add=True)
 
     def __str__(self):

@@ -156,6 +156,21 @@ class PaymentDateFixSerializer(serializers.ModelSerializer):
         depth = 1
 
 
+class OfflinePaymentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OfflinePayment
+        fields = "__all__"
+        depth = 1
+
+
+class TrackMembershipPaymentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TrackMembershipPayment
+        fields = "__all__"
+        depth = 2
+
+
+
 
 
 

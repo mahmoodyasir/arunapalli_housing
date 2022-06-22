@@ -17,6 +17,7 @@ from rest_framework.compat import coreapi, coreschema
 from rest_framework.schemas import ManualSchema
 
 from .serializers import MyAuthTokenSerializer
+from datetime import *
 
 
 # Create your views here.
@@ -333,7 +334,15 @@ class CreateOfflinePayment(views.APIView):
             query = PaymentDateFix.objects.last()
             start_date = getattr(query, "start_date")
             end_date = getattr(query, "end_date")
-            print(email)
+            date_today = date.today()
+            payment_status = ""
+
+
+
+            if start_date <= date_today <= end_date:
+                payment_status = "ontime"
+            else:
+                payment_status = "late"
 
             OfflinePayment.objects.create(
                 member_email=email_query,
@@ -348,16 +357,20 @@ class CreateOfflinePayment(views.APIView):
                 end_date=end_date
             )
 
+            query2 = OfflinePayment.objects.last()
+
             TrackMembershipPayment.objects.create(
-                member_email=email,
+                member_email=query2,
                 member_status=status,
                 plot_no=plot,
                 road_no=road,
-                payment_type="offline"
+                payment_type="offline",
+                payment_status=payment_status
             )
 
             # print(start_date)
             # print(end_date)
+            # print(date_today)
             # print(email)
             # print(cheque)
             # print(account)
@@ -367,7 +380,7 @@ class CreateOfflinePayment(views.APIView):
             # print(status)
             # print(paid)
 
-            response_msg = {"error": False, "message": "Your order is complete"}
+            response_msg = {"error": False, "message": "Your Payment is complete"}
         except:
             response_msg = {"error": True, "message": "Something is wrong ! "}
 
@@ -463,3 +476,28 @@ class ChangePassword(views.APIView):
         else:
             response_msg = {"message": False}
             return Response(response_msg)
+
+
+class UserPaymentInfo(viewsets.ViewSet):
+    permission_classes = [IsAuthenticated, ]
+    authentication_classes = [TokenAuthentication, ]
+
+    def list(self, request):
+        user = request.user
+        query = TrackMembershipPayment.objects.filter(member_email__member_email__email=user)
+        serializer = TrackMembershipPaymentSerializer(query, many=True)
+        return Response(serializer.data)
+
+    def retrieve(self, request, pk=None):
+        query = TrackMembershipPayment.objects.filter(id=pk)
+        serializer = TrackMembershipPaymentSerializer(query, many=True)
+        return Response(serializer.data)
+
+
+class PlotOwner(views.APIView):
+
+    def get(self, request):
+        user = request.user
+        query = TrackPlotOwnership.objects.filter(owner_email__email=user)
+        serializer = TrackPlotOwnershipSerializer(query, many=True)
+        return Response(serializer.data)

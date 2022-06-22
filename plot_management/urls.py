@@ -6,6 +6,7 @@ from .views import obtain_auth_token
 route = routers.DefaultRouter()
 route.register("all_owner_view", TrackOwnerView, basename="all_owner_view")
 route.register("date_handle", DateHandle, basename="date_handle")
+route.register("user_payment_info", UserPaymentInfo, basename="user_payment_info")
 # route.register("category", CategoryView, basename="CategoryView")
 
 
@@ -33,6 +34,7 @@ urlpatterns = [
     path('profile_image_update/', ProfileImageUpdate.as_view(), name="profile_image_update"),
     path('userdataupdate/', UserDataUpdate.as_view(), name="userdataupdate"),
     path('change_password/', ChangePassword.as_view(), name="change_password"),
+    path('plot_owner/', PlotOwner.as_view(), name="plot_owner"),
     # path('all_owner_view/', TrackOwnerView.as_view(), name="all_owner_view"),
     # path('product/', ProductView.as_view(), name="product"),
     # path('product/<int:id>/', ProductView.as_view(), name="product"),
