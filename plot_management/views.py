@@ -1,7 +1,8 @@
 from django.shortcuts import render
+from django.urls import reverse
 from rest_framework import generics, mixins, viewsets, views, status
 from rest_framework.response import Response
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseRedirect, HttpResponse
 
 from .models import *
 from .serializers import *
@@ -15,9 +16,18 @@ from rest_framework.authtoken.models import Token
 from rest_framework.authtoken import views as auth_views
 from rest_framework.compat import coreapi, coreschema
 from rest_framework.schemas import ManualSchema
+from django.conf import settings
 
 from .serializers import MyAuthTokenSerializer
 from datetime import *
+
+from sslcommerz_python.payment import SSLCSession
+from decimal import Decimal
+
+from django.views.decorators.csrf import csrf_exempt
+from rest_framework.decorators import api_view
+from django.shortcuts import redirect
+from django.db.models import Q
 
 
 # Create your views here.
@@ -344,41 +354,48 @@ class CreateOfflinePayment(views.APIView):
             else:
                 payment_status = "late"
 
-            OfflinePayment.objects.create(
-                member_email=email_query,
-                cheque_number=cheque,
-                account_no=account,
-                member_nid=nid,
-                plot_no=plot,
-                road_no=road,
-                member_status=status_query,
-                paid_amount=paid,
-                start_date=start_date,
-                end_date=end_date
-            )
+            if TrackMembershipPayment.objects.filter(Q(member_email__member_email__email=email) |
+                                                     Q(online_email__email__email=email), plot_no=plot,
+                                                     start_date=start_date, end_date=end_date).exists():
+                return Response({"error": True, "message": "Already paid within required time duration"})
+            else:
+                OfflinePayment.objects.create(
+                    member_email=email_query,
+                    cheque_number=cheque,
+                    account_no=account,
+                    member_nid=nid,
+                    plot_no=plot,
+                    road_no=road,
+                    member_status=status_query,
+                    paid_amount=paid,
+                    start_date=start_date,
+                    end_date=end_date
+                )
 
-            query2 = OfflinePayment.objects.last()
+                query2 = OfflinePayment.objects.last()
 
-            TrackMembershipPayment.objects.create(
-                member_email=query2,
-                member_status=status,
-                plot_no=plot,
-                road_no=road,
-                payment_type="offline",
-                payment_status=payment_status
-            )
+                TrackMembershipPayment.objects.create(
+                    member_email=query2,
+                    member_status=status,
+                    plot_no=plot,
+                    road_no=road,
+                    payment_type="offline",
+                    payment_status=payment_status,
+                    start_date=start_date,
+                    end_date=end_date
+                )
 
-            # print(start_date)
-            # print(end_date)
-            # print(date_today)
-            # print(email)
-            # print(cheque)
-            # print(account)
-            # print(nid)
-            # print(plot)
-            # print(road)
-            # print(status)
-            # print(paid)
+                # print(start_date)
+                # print(end_date)
+                # print(date_today)
+                # print(email)
+                # print(cheque)
+                # print(account)
+                # print(nid)
+                # print(plot)
+                # print(road)
+                # print(status)
+                # print(paid)
 
             response_msg = {"error": False, "message": "Your Payment is complete"}
         except:
@@ -484,8 +501,11 @@ class UserPaymentInfo(viewsets.ViewSet):
 
     def list(self, request):
         user = request.user
-        query = TrackMembershipPayment.objects.filter(member_email__member_email__email=user)
+        all_data = []
+        query = TrackMembershipPayment.objects.filter(Q(member_email__member_email__email=user) |
+                                                      Q(online_email__email__email=user)).order_by("-id")
         serializer = TrackMembershipPaymentSerializer(query, many=True)
+
         return Response(serializer.data)
 
     def retrieve(self, request, pk=None):
@@ -501,3 +521,138 @@ class PlotOwner(views.APIView):
         query = TrackPlotOwnership.objects.filter(owner_email__email=user)
         serializer = TrackPlotOwnershipSerializer(query, many=True)
         return Response(serializer.data)
+
+
+class UserPaymentView(views.APIView):
+    def get(self, request):
+        user = request.user
+
+        owner_query = TrackPlotOwnership.objects.filter(owner_email__email=user)
+        owner_serializer = TrackPlotOwnershipSerializer(owner_query, many=True)
+
+        return Response(owner_serializer.data)
+
+
+class OnlinePayment(views.APIView):
+    def post(self, request):
+        data = request.data
+
+        email = data["email"]
+        phone = data["phone"]
+        name = data["name"]
+        nid = data["nid"]
+        plot_no = data["plot_no"]
+        road_no = data["road_no"]
+        member_status = data["member_status"]
+        payment_amount = data["payment_amount"]
+
+        query = PaymentDateFix.objects.last()
+
+        start_date = getattr(query, "start_date")
+        end_date = getattr(query, "end_date")
+        date_today = date.today()
+
+        if TrackMembershipPayment.objects.filter(Q(member_email__member_email__email=email) |
+                                                 Q(online_email__email__email=email),
+                                                 plot_no=plot_no, start_date=start_date, end_date=end_date).exists():
+
+            return Response({"data": "invalid"})
+
+        else:
+            store_id = settings.STORE_ID
+            store_pass = settings.STORE_PASS
+            mypayment = SSLCSession(sslc_is_sandbox=True, sslc_store_id=store_id, sslc_store_pass=store_pass)
+
+            status_url = request.build_absolute_uri(reverse('status'))
+            mypayment.set_urls(success_url=status_url, fail_url=status_url, cancel_url=status_url, ipn_url=status_url)
+
+            mypayment.set_product_integration(total_amount=Decimal(payment_amount), currency='BDT',
+                                              product_category='Membership Payment', product_name='None',
+                                              num_of_item=1, shipping_method='online',
+                                              product_profile='None')
+
+            mypayment.set_customer_info(name=name, email=email,
+                                        address1=plot_no, address2=road_no,
+                                        city='Dhaka, Ashulia', postcode='None',
+                                        country='Bangladesh', phone=phone)
+
+            mypayment.set_shipping_info(shipping_to=email, address=plot_no,
+                                        city='Dhaka, Ashulia', postcode='None',
+                                        country='Bangladesh')
+
+            mypayment.set_additional_values(value_a=email, value_b=plot_no, value_c=road_no,
+                                            value_d=member_status)
+
+            response_data = mypayment.init_payment()
+
+            print(response_data['GatewayPageURL'])
+
+            return Response(response_data['GatewayPageURL'])
+
+
+@csrf_exempt
+@api_view(['POST'])
+def sslc_status(request):
+    if request.method == 'post' or request.method == 'POST':
+        payment_data = request.POST
+        status = payment_data['status']
+        if status == 'VALID':
+            val_id = payment_data['val_id']
+            tran_id = payment_data['tran_id']
+            value_a = payment_data['value_a']
+            value_b = payment_data['value_b']
+            value_c = payment_data['value_c']
+            value_d = payment_data['value_d']
+            amount = payment_data['amount']
+            medium = payment_data['card_issuer']
+            print(payment_data)
+
+            email_query = Member.objects.get(email=value_a)
+            status_query = Status.objects.get(title=value_d)
+
+            nid = getattr(email_query, 'member_nid')
+
+            query = PaymentDateFix.objects.last()
+
+            start_date = getattr(query, "start_date")
+            end_date = getattr(query, "end_date")
+
+            date_today = date.today()
+            payment_status = ""
+
+            if start_date <= date_today <= end_date:
+                payment_status = "ontime"
+            else:
+                payment_status = "late"
+
+            PayOnline.objects.create(
+                email=email_query,
+                transaction_id=tran_id,
+                medium=medium,
+                member_nid=nid,
+                plot_no=value_b,
+                road_no=value_c,
+                member_status=status_query,
+                paid_amount=amount,
+                start_date=start_date,
+                end_date=end_date
+            )
+
+            query2 = PayOnline.objects.last()
+
+            TrackMembershipPayment.objects.create(
+                online_email=query2,
+                member_status=value_d,
+                plot_no=value_b,
+                road_no=value_c,
+                payment_type="online",
+                payment_status=payment_status,
+                start_date=start_date,
+                end_date=end_date
+            )
+
+            return redirect("http://localhost:3000/user_payment_status")
+
+
+def sslc_complete(request, val_id, tran_id, value_a, value_b, value_c, value_d):
+    pass

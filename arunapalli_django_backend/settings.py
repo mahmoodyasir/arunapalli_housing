@@ -155,4 +155,7 @@ REST_FRAMEWORK = {
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'plot_management.User'
 
+STORE_ID = 'yasir62b2f1060a96d'
+STORE_PASS = 'yasir62b2f1060a96d@ssl'
+
 django_heroku.settings(locals())

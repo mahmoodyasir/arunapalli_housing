@@ -2,6 +2,7 @@ from django.urls import path, include
 from rest_framework import routers
 from .views import *
 from .views import obtain_auth_token
+from plot_management import views
 
 route = routers.DefaultRouter()
 route.register("all_owner_view", TrackOwnerView, basename="all_owner_view")
@@ -35,6 +36,11 @@ urlpatterns = [
     path('userdataupdate/', UserDataUpdate.as_view(), name="userdataupdate"),
     path('change_password/', ChangePassword.as_view(), name="change_password"),
     path('plot_owner/', PlotOwner.as_view(), name="plot_owner"),
+    path('user_payment_view/', UserPaymentView.as_view(), name="user_payment_view"),
+    path('online_payment/', OnlinePayment.as_view(), name="online_payment"),
+
+    path('sslc/status/', views.sslc_status, name='status'),
+    path('sslc/complete/<val_id>/<tran_id>/<value_a>/<value_b>/<value_c>/<value_d>/', views.sslc_complete, name='sslc_complete'),
     # path('all_owner_view/', TrackOwnerView.as_view(), name="all_owner_view"),
     # path('product/', ProductView.as_view(), name="product"),
     # path('product/<int:id>/', ProductView.as_view(), name="product"),

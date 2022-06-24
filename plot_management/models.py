@@ -159,13 +159,33 @@ class OfflinePayment(models.Model):
         return f"{self.member_email}=={self.account_no}=={self.plot_no}=={self.road_no}=={self.payment_date}"
 
 
+class PayOnline(models.Model):
+    email = models.ForeignKey(Member, on_delete=models.CASCADE, null=True, blank=True)
+    transaction_id = models.CharField(max_length=255, null=True, blank=True)
+    medium = models.CharField(max_length=255, null=True, blank=True)
+    member_nid = models.CharField(max_length=200, null=True, blank=True)
+    plot_no = models.CharField(max_length=199, null=True, blank=True)
+    road_no = models.CharField(max_length=199, null=True, blank=True)
+    member_status = models.ForeignKey(Status, on_delete=models.CASCADE, default=3, null=True, blank=True)
+    paid_amount = models.CharField(max_length=255, null=True, blank=True)
+    start_date = models.DateField(null=True, blank=True)
+    end_date = models.DateField(null=True, blank=True)
+    payment_date = models.DateField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.email}=={self.plot_no}=={self.road_no}=={self.payment_date}=={self.member_status}"
+
+
 class TrackMembershipPayment(models.Model):
     member_email = models.ForeignKey(OfflinePayment, null=True, blank=True, on_delete=models.CASCADE)
+    online_email = models.ForeignKey(PayOnline, null=True, blank=True, on_delete=models.CASCADE)
     member_status = models.CharField(max_length=199, null=True, blank=True)
     plot_no = models.CharField(max_length=155, null=True, blank=True)
     road_no = models.CharField(max_length=155, null=True, blank=True)
     payment_type = models.CharField(max_length=155, null=True, blank=True)
     payment_status = models.CharField(max_length=155, null=True, blank=True)
+    start_date = models.DateField(null=True, blank=True)
+    end_date = models.DateField(null=True, blank=True)
     date = models.DateField(auto_now_add=True)
 
     def __str__(self):

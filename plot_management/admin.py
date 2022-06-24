@@ -48,7 +48,15 @@ class OfflinePaymentAdmin(admin.ModelAdmin):
 
 class TrackMembershipPaymentAdmin(admin.ModelAdmin):
     search_fields = ['id', 'member_email']
-    list_display = ['id', 'member_email', 'member_status', 'plot_no', 'road_no', 'payment_type', 'payment_status', 'date']
+    list_display = ['id', 'member_email', 'online_email', 'member_status', 'plot_no', 'road_no', 'payment_type',
+                    'payment_status', 'start_date', 'end_date', 'date']
+    list_per_page = 10
+
+
+class PayOnlineAdmin(admin.ModelAdmin):
+    search_fields = ['id', 'email']
+    list_display = ['id', 'email', 'transaction_id', 'medium', 'member_nid', 'plot_no', 'road_no', 'member_status',
+                    'paid_amount', 'start_date', 'end_date', 'payment_date']
     list_per_page = 10
 
 
@@ -66,6 +74,7 @@ admin.site.register(AdminUserInfo)
 admin.site.register(PaymentDateFix)
 admin.site.register(TrackPlotOwnership, TrackPlotOwnershipAdmin)
 admin.site.register(TrackMembershipPayment, TrackMembershipPaymentAdmin)
+admin.site.register(PayOnline, PayOnlineAdmin)
 
 
 
