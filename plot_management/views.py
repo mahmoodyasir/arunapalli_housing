@@ -57,11 +57,11 @@ class MemberView(views.APIView):
 
 
 class AllMemberView(views.APIView):
-    # authentication_classes = [TokenAuthentication, ]
-    # permission_classes = [IsAdminUser, ]
+    authentication_classes = [TokenAuthentication, ]
+    permission_classes = [IsAdminUser, ]
 
     def get(self, request):
-        query = Member.objects.all()
+        query = Member.objects.all().order_by("-id")
         serializer = MemberSerializer(query, many=True)
         return Response(serializer.data)
 
@@ -178,8 +178,11 @@ class MemberAPI(views.APIView):
 
 
 class ProfileView(views.APIView):
+    authentication_classes = [TokenAuthentication, ]
+    permission_classes = [IsAdminUser, ]
+
     def get(self, request):
-        query = Profile.objects.all()
+        query = Profile.objects.filter(prouser__is_superuser=False).order_by("-id")
         serializer = ProfileSerializers(query, many=True)
         return Response(serializer.data)
 
@@ -196,6 +199,27 @@ class PlotPositionView(views.APIView):
         query = PlotPosition.objects.all().order_by("-id")
         serializer = PlotPositionSerializer(query, many=True)
         return Response(serializer.data)
+
+
+class PlotPositionDelete(views.APIView):
+    def post(self, request, pk):
+        obj = PlotPosition.objects.get(id=pk)
+        obj.delete()
+        return Response({"message": "Plot Position With Road Deleted"})
+
+
+class PlotDelete(views.APIView):
+    def post(self, request, pk):
+        obj = PlotNumber.objects.get(id=pk)
+        obj.delete()
+        return Response({"message": "Plot Deleted"})
+
+
+class RoadDelete(views.APIView):
+    def post(self, request, pk):
+        obj = RoadNumber.objects.get(id=pk)
+        obj.delete()
+        return Response({"message": "Road Deleted"})
 
 
 class RoadPlotView(views.APIView):
@@ -524,6 +548,9 @@ class PlotOwner(views.APIView):
 
 
 class UserPaymentView(views.APIView):
+    authentication_classes = [TokenAuthentication, ]
+    permission_classes = [IsAdminUser, ]
+
     def get(self, request):
         user = request.user
 
@@ -531,6 +558,187 @@ class UserPaymentView(views.APIView):
         owner_serializer = TrackPlotOwnershipSerializer(owner_query, many=True)
 
         return Response(owner_serializer.data)
+
+
+class AllPaymentStatus(views.APIView):
+    authentication_classes = [TokenAuthentication, ]
+    permission_classes = [IsAdminUser, ]
+
+    def get(self, request):
+        query1 = TrackMembershipPayment.objects.exclude(member_email__isnull=True).order_by("-id")
+        serializer1 = TrackMembershipPaymentSerializer(query1, many=True)
+
+        query2 = TrackMembershipPayment.objects.exclude(online_email__isnull=True).order_by("-id")
+        serializer2 = TrackMembershipPaymentSerializer(query2, many=True)
+
+        return Response({"offline": serializer1.data, "online": serializer2.data})
+
+
+class MemberDelete(views.APIView):
+    authentication_classes = [TokenAuthentication, ]
+    permission_classes = [IsAdminUser, ]
+
+    def post(self, request, pk, key):
+
+        if key == "button1":
+            obj = Member.objects.get(id=pk)
+            email = getattr(obj, "email")
+            member_firstname = getattr(obj, "member_firstname")
+            member_lastname = getattr(obj, "member_lastname")
+            member_nid = getattr(obj, "member_nid")
+            member_phone = getattr(obj, "member_phone")
+
+            plot_query1 = TrackPlotOwnership.objects.filter(owner_email__email=email)
+
+            for i in range(plot_query1.count()):
+                owner_email = getattr(plot_query1[i], "owner_email")
+                plot_no = getattr(plot_query1[i], "plot_no")
+                road_no = getattr(plot_query1[i], "road_no")
+                member_status = getattr(plot_query1[i], "member_status")
+
+
+                MemberHistory.objects.create(
+                    owner_email=owner_email,
+                    member_firstname=member_firstname,
+                    member_lastname=member_lastname,
+                    member_nid=member_nid,
+                    member_phone=member_phone,
+                    plot_no=plot_no,
+                    road_no=road_no,
+                    member_status=member_status
+                )
+
+            obj.delete()
+
+        elif key == "button2":
+            obj1 = Member.objects.get(id=pk)
+            email = getattr(obj1, "email")
+            member_firstname = getattr(obj1, "member_firstname")
+            member_lastname = getattr(obj1, "member_lastname")
+            member_nid = getattr(obj1, "member_nid")
+            member_phone = getattr(obj1, "member_phone")
+
+            obj2 = User.objects.get(email=email)
+            plot_query2 = TrackPlotOwnership.objects.filter(owner_email__email=email)
+
+            for i in range(plot_query2.count()):
+                owner_email = getattr(plot_query2[i], "owner_email")
+                plot_no = getattr(plot_query2[i], "plot_no")
+                road_no = getattr(plot_query2[i], "road_no")
+                member_status = getattr(plot_query2[i], "member_status")
+
+                MemberHistory.objects.create(
+                    owner_email=owner_email,
+                    member_firstname=member_firstname,
+                    member_lastname=member_lastname,
+                    member_nid=member_nid,
+                    member_phone=member_phone,
+                    plot_no=plot_no,
+                    road_no=road_no,
+                    member_status=member_status
+                )
+
+            obj1.delete()
+            obj2.delete()
+
+        return Response({"OK"})
+
+
+class OnlyUserDelete(views.APIView):
+    authentication_classes = [TokenAuthentication, ]
+    permission_classes = [IsAdminUser, ]
+
+    def post(self, request, pk, key):
+        if key == "button1":
+            query = Profile.objects.get(id=pk)
+            email = getattr(query, "prouser")
+            obj = User.objects.get(email=email)
+
+            if Member.objects.filter(email=email).exists():
+                obj2 = Member.objects.get(email=email)
+                email = getattr(obj2, "email")
+                member_firstname = getattr(obj2, "member_firstname")
+                member_lastname = getattr(obj2, "member_lastname")
+                member_nid = getattr(obj2, "member_nid")
+                member_phone = getattr(obj2, "member_phone")
+                print(email, member_firstname, member_lastname, member_nid, member_phone)
+
+                if TrackPlotOwnership.objects.filter(owner_email__email=email).exists():
+                    plot_query = TrackPlotOwnership.objects.filter(owner_email__email=email)
+
+                    for i in range(plot_query.count()):
+                        owner_email = getattr(plot_query[i], "owner_email")
+                        plot_no = getattr(plot_query[i], "plot_no")
+                        road_no = getattr(plot_query[i], "road_no")
+                        member_status = getattr(plot_query[i], "member_status")
+
+                        MemberHistory.objects.create(
+                            owner_email=owner_email,
+                            member_firstname=member_firstname,
+                            member_lastname=member_lastname,
+                            member_nid=member_nid,
+                            member_phone=member_phone,
+                            plot_no=plot_no,
+                            road_no=road_no,
+                            member_status=member_status
+                        )
+
+                    print("Owner Exists")
+                    obj.delete()
+                    obj2.delete()
+
+                else:
+                    print("No Owner Found")
+                    obj.delete()
+                    obj2.delete()
+            else:
+                print("Not a Member")
+                obj.delete()
+
+        return Response({"OK"})
+
+
+class OwnerHistory(views.APIView):
+    authentication_classes = [TokenAuthentication, ]
+    permission_classes = [IsAdminUser, ]
+
+    def get(self, request):
+        query = MemberHistory.objects.all().order_by("-id")
+        serializer = MemberHistorySerializer(query, many=True)
+        return Response(serializer.data)
+
+
+class OwnerDelete(views.APIView):
+    authentication_classes = [TokenAuthentication, ]
+    permission_classes = [IsAdminUser, ]
+
+    def post(self, request, pk, key):
+        if key == "button1":
+            query = TrackPlotOwnership.objects.get(id=pk)
+            owner_email = getattr(query, "owner_email")
+            plot_no = getattr(query, "plot_no")
+            road_no = getattr(query, "road_no")
+            member_status = getattr(query, "member_status")
+
+            member_obj = Member.objects.get(email=owner_email)
+            member_firstname = getattr(member_obj, "member_firstname")
+            member_lastname = getattr(member_obj, "member_lastname")
+            member_nid = getattr(member_obj, "member_nid")
+            member_phone = getattr(member_obj, "member_phone")
+
+            MemberHistory.objects.create(
+                owner_email=owner_email,
+                member_firstname=member_firstname,
+                member_lastname=member_lastname,
+                member_nid=member_nid,
+                member_phone=member_phone,
+                plot_no=plot_no,
+                road_no=road_no,
+                member_status=member_status
+            )
+            query.delete()
+
+        return Response({"OK"})
 
 
 class OnlinePayment(views.APIView):

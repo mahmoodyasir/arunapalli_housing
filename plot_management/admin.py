@@ -29,7 +29,7 @@ class PlotPositionAdmin(admin.ModelAdmin):
 
 
 class TrackPlotOwnershipAdmin(admin.ModelAdmin):
-    search_fields = ['id']
+    search_fields = ['id', 'owner_email']
     list_display = ['id', 'owner_email', 'plot_no', 'road_no', 'member_status', 'date']
     list_per_page = 10
 
@@ -60,6 +60,12 @@ class PayOnlineAdmin(admin.ModelAdmin):
     list_per_page = 10
 
 
+class MemberHistoryAdmin(admin.ModelAdmin):
+    search_fields = ['id', 'owner_email']
+    list_display = ['id', 'owner_email', 'member_firstname', 'member_lastname', 'member_nid', 'member_phone', 'plot_no', 'road_no', 'member_status', 'date']
+    list_per_page = 10
+
+
 admin.site.register(User, UserAdmin)
 admin.site.register(Profile, ProfileAdmin)
 admin.site.register(Status, StatusAdmin)
@@ -75,6 +81,7 @@ admin.site.register(PaymentDateFix)
 admin.site.register(TrackPlotOwnership, TrackPlotOwnershipAdmin)
 admin.site.register(TrackMembershipPayment, TrackMembershipPaymentAdmin)
 admin.site.register(PayOnline, PayOnlineAdmin)
+admin.site.register(MemberHistory, MemberHistoryAdmin)
 
 
 

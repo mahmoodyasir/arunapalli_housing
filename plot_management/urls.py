@@ -23,7 +23,16 @@ urlpatterns = [
     path('profileview/', ProfileView.as_view(), name="profileview"),
     path('statusview/', StatusView.as_view(), name="statusview"),
     path('add_member/', AddMember.as_view(), name="add_member"),
-    path('plotpositionview/', PlotPositionView.as_view(), name="plotview"),
+    path('plotpositionview/', PlotPositionView.as_view(), name="plotpositionview"),
+    path('plotpositiondelete/<str:pk>/', PlotPositionDelete.as_view(), name="plotpositiondelete"),
+
+    path('plotpositiondelete/<str:pk>/', PlotPositionDelete.as_view(), name="plotpositiondelete"),
+    path('plotdelete/<str:pk>/', PlotDelete.as_view(), name="plotdelete"),
+    path('roaddelete/<str:pk>/', RoadDelete.as_view(), name="roaddelete"),
+    path('member_delete/<str:pk>/<str:key>/', MemberDelete.as_view(), name="member_delete"),
+    path('user_delete/<str:pk>/<str:key>/', OnlyUserDelete.as_view(), name="user_delete"),
+    path('owner_delete/<str:pk>/<str:key>/', OwnerDelete.as_view(), name="owner_delete"),
+
     path('roadplotview/', RoadPlotView.as_view(), name="roadplotview"),
     path('add_plot_road/', AddPlotRoad.as_view(), name="add_plot_road"),
     path('plot_add/', PlotAdd.as_view(), name="plot_add"),
@@ -38,6 +47,9 @@ urlpatterns = [
     path('plot_owner/', PlotOwner.as_view(), name="plot_owner"),
     path('user_payment_view/', UserPaymentView.as_view(), name="user_payment_view"),
     path('online_payment/', OnlinePayment.as_view(), name="online_payment"),
+    path('all_payment_status/', AllPaymentStatus.as_view(), name="all_payment_status"),
+    path('owner_history/', OwnerHistory.as_view(), name="owner_history"),
+
 
     path('sslc/status/', views.sslc_status, name='status'),
     path('sslc/complete/<val_id>/<tran_id>/<value_a>/<value_b>/<value_c>/<value_d>/', views.sslc_complete, name='sslc_complete'),

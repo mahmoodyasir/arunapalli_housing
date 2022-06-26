@@ -170,6 +170,28 @@ class TrackMembershipPaymentSerializer(serializers.ModelSerializer):
         depth = 2
 
 
+class OfflineSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OfflinePayment
+        fields = "__all__"
+        depth = 1
+
+
+class PayOnlineSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PayOnline
+        fields = "__all__"
+        depth = 1
+
+
+class MemberHistorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MemberHistory
+        fields = "__all__"
+        depth = 1
+
+
+
 
 
 

@@ -192,3 +192,16 @@ class TrackMembershipPayment(models.Model):
         return f"{self.member_email}=={self.member_status}=={self.plot_no}=={self.road_no}=={self.date}"
 
 
+class MemberHistory(models.Model):
+    owner_email = models.CharField(max_length=199,null=True, blank=True)
+    member_firstname = models.CharField(max_length=200, blank=True, null=True)
+    member_lastname = models.CharField(max_length=200, blank=True, null=True)
+    member_nid = models.CharField(max_length=200, blank=True, null=True)
+    member_phone = models.CharField(max_length=200, blank=True, null=True)
+    plot_no = models.CharField(max_length=199, null=True, blank=True)
+    road_no = models.CharField(max_length=199, null=True, blank=True)
+    member_status = models.CharField(max_length=199,null=True, blank=True)
+    date = models.DateField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.owner_email}=={self.plot_no}=={self.road_no}=={self.member_status}=={self.date}"
