@@ -144,6 +144,15 @@ class RegisterView(views.APIView):
         return Response({"error": True, "message": "Something is wrong"})
 
 
+class AdminRegister(views.APIView):
+    def post(self, request):
+        serializers = AdminUserSerializer(data=request.data)
+
+        if serializers.is_valid():
+            serializers.save()
+            return Response({"error": False, "message": f"Admin User is created for '{serializers.data['email']}'"})
+        return Response({"error": True, "message": "Something is wrong"})
+
 # General Model Serializing
 
 
@@ -548,8 +557,8 @@ class PlotOwner(views.APIView):
 
 
 class UserPaymentView(views.APIView):
+    permission_classes = [IsAuthenticated, ]
     authentication_classes = [TokenAuthentication, ]
-    permission_classes = [IsAdminUser, ]
 
     def get(self, request):
         user = request.user
@@ -739,6 +748,71 @@ class OwnerDelete(views.APIView):
             query.delete()
 
         return Response({"OK"})
+
+
+class AdminView(views.APIView):
+    authentication_classes = [TokenAuthentication, ]
+    permission_classes = [IsAdminUser, ]
+
+    def get(self, request):
+        query = Profile.objects.filter(prouser__is_superuser=True).order_by("-id")
+        serializer = ProfileSerializers(query, many=True)
+
+        return Response(serializer.data)
+
+
+class AdminDelete(views.APIView):
+    authentication_classes = [TokenAuthentication, ]
+    permission_classes = [IsAdminUser, ]
+
+    def post(self, request, pk, key):
+        if key == "button1":
+            query = User.objects.get(id=pk)
+            query.delete()
+
+        return Response({"Admin User Deleted"})
+
+
+class MemberDetails(views.APIView):
+    authentication_classes = [TokenAuthentication, ]
+    permission_classes = [IsAdminUser, ]
+
+    def get(self, request, pk):
+        member_query = Member.objects.get(id=pk)
+        email = getattr(member_query, "email")
+        member_serializer = MemberSerializer(member_query)
+        serializer = member_serializer.data
+        all_data = []
+
+        profile_query = Profile.objects.get(prouser__email=email)
+        pro_serializer = ProfileSerializers(profile_query)
+        serializer["profile"] = pro_serializer.data
+        all_data.append(serializer)
+
+        return Response(all_data)
+
+
+class TableCount(views.APIView):
+    authentication_classes = [TokenAuthentication, ]
+    permission_classes = [IsAdminUser, ]
+
+    def get(self, request):
+        user = User.objects.all().values().count()
+        member = Member.objects.all().values().count()
+        plot = PlotNumber.objects.all().values().count()
+        road = RoadNumber.objects.all().values().count()
+        assigned_plot = PlotPosition.objects.all().values().count()
+        online = PayOnline.objects.all().values().count()
+        offline = OfflinePayment.objects.all().values().count()
+        return Response({
+            "user": user,
+            "member": member,
+            "plot": plot,
+            "road": road,
+            "assigned_plot": assigned_plot,
+            "online": online,
+            "offline": offline
+        })
 
 
 class OnlinePayment(views.APIView):
