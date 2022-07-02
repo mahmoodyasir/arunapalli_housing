@@ -40,6 +40,7 @@ urlpatterns = [
     path('owner_delete/<str:pk>/<str:key>/', OwnerDelete.as_view(), name="owner_delete"),
     path('admin_delete/<str:pk>/<str:key>/', AdminDelete.as_view(), name="admin_delete"),
     path('status_update/', UpdateStatusAmount.as_view(), name="status_update"),
+    path('payment_boolean/<str:pk>/', PaymentBoolean.as_view(), name="payment_boolean"),
 
     path('roadplotview/', RoadPlotView.as_view(), name="roadplotview"),
     path('add_plot_road/', AddPlotRoad.as_view(), name="add_plot_road"),
@@ -59,6 +60,7 @@ urlpatterns = [
     path('owner_history/', OwnerHistory.as_view(), name="owner_history"),
     path('member_details/<str:pk>/', MemberDetails.as_view(), name="member_details"),
     path('table_count/', TableCount.as_view(), name="table_count"),
+    path('owner_update/', PlotOwnerUpdate.as_view(), name="owner_update"),
 
 
     path('sslc/status/', views.sslc_status, name='status'),

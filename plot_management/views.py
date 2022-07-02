@@ -839,6 +839,135 @@ class UpdateStatusAmount(views.APIView):
         return Response({"OK"})
 
 
+class PaymentBoolean(views.APIView):
+    authentication_classes = [TokenAuthentication, ]
+    permission_classes = [IsAdminUser, ]
+
+    def get(self, request, pk):
+        query = TrackMembershipPayment.objects.filter(Q(member_email__member_email__email=pk) |
+                                                      Q(online_email__email__email=pk)).exists()
+        return Response({"message": query})
+
+
+class PlotOwnerUpdate(views.APIView):
+    authentication_classes = [TokenAuthentication, ]
+    permission_classes = [IsAdminUser, ]
+
+    def post(self, request):
+        data = request.data
+
+        pk = data["id"]
+        plot_no = data["plot_no"]
+        status_no = data["status_no"]
+        bool_delete = data["bool_delete"]
+
+        query = TrackPlotOwnership.objects.get(id=pk)
+        email = getattr(query, "owner_email")
+        obj = TrackMembershipPayment.objects.filter(Q(member_email__member_email__email=email) |
+                                                      Q(online_email__email__email=email)).exists()
+        # print(email)
+        # print(pk, plot_no, status_no, bool_delete)
+
+        if bool_delete == "true":
+            print("Bool True")
+
+            if plot_no == "null" and status_no == "null":
+                return Response({"message": "all_null"})
+
+            elif plot_no == "null" and status_no != "null":
+                return Response({"message": "plot_null"})
+
+            elif plot_no != "null" and status_no == "null":
+                return Response({"message": "status_null"})
+
+            elif plot_no != "null" and status_no != "null":
+
+                if obj == True:
+                    plot = getattr(query, "plot_no")
+                    road = getattr(query, "road_no")
+                    member_status = getattr(query, "member_status")
+
+                    member_obj = Member.objects.get(email=email)
+                    member_firstname = getattr(member_obj, "member_firstname")
+                    member_lastname = getattr(member_obj, "member_lastname")
+                    member_nid = getattr(member_obj, "member_nid")
+                    member_phone = getattr(member_obj, "member_phone")
+
+                    MemberHistory.objects.create(
+                        owner_email=email,
+                        member_firstname=member_firstname,
+                        member_lastname=member_lastname,
+                        member_nid=member_nid,
+                        member_phone=member_phone,
+                        plot_no=plot,
+                        road_no=road,
+                        member_status=member_status
+                    )
+                    status_query = Status.objects.get(id=status_no)
+                    member_query = Member.objects.get(email=email)
+                    road_query = PlotPosition.objects.get(plot_no=plot_no)
+                    road_num = getattr(road_query, "road_no")
+
+                    TrackPlotOwnership.objects.create(
+                        owner_email=member_query,
+                        plot_no=plot_no,
+                        road_no=road_num,
+                        member_status=status_query
+                    )
+                    query.delete()
+
+                elif obj == False:
+                    up_obj = TrackPlotOwnership.objects.get(id=pk)
+                    status_query = Status.objects.get(id=status_no)
+                    road_query = PlotPosition.objects.get(plot_no=plot_no)
+                    road_num = getattr(road_query, "road_no")
+
+                    up_obj.plot_no = plot_no
+                    up_obj.road_no = road_num
+                    up_obj.member_status = status_query
+                    up_obj.save()
+
+                    print("I'm gonna just update")
+
+        elif plot_no == "null" and status_no == "null":
+            return Response({"message": "all_null"})
+
+        elif plot_no == "null" and status_no != "null":
+            print("Status not null")
+
+        elif plot_no != "null" and status_no == "null":
+            # Check if any payment record exists, if not then update else show error response
+            if obj == True:
+                return Response({"message": "delete_record"})
+            elif obj == False:
+                up_obj = TrackPlotOwnership.objects.get(id=pk)
+                road_query = PlotPosition.objects.get(plot_no=plot_no)
+                road_num = getattr(road_query, "road_no")
+
+                up_obj.plot_no = plot_no
+                up_obj.road_no = road_num
+                up_obj.save()
+                print("Can Update")
+
+        elif plot_no != "null" and status_no != "null":
+            # Check if mistakenly any payment record exists, if found response "delete_record" else update
+            if obj == True:
+                return Response({"message": "delete_record"})
+            elif obj == False:
+                up_obj = TrackPlotOwnership.objects.get(id=pk)
+                status_query = Status.objects.get(id=status_no)
+                road_query = PlotPosition.objects.get(plot_no=plot_no)
+                road_num = getattr(road_query, "road_no")
+
+                up_obj.plot_no = plot_no
+                up_obj.road_no = road_num
+                up_obj.member_status = status_query
+                up_obj.save()
+            print("Plot and Status both not null")
+
+        return Response({"OK"})
+
+
 class OnlinePayment(views.APIView):
     def post(self, request):
         data = request.data
