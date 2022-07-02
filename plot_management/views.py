@@ -498,9 +498,7 @@ class UserDataUpdate(views.APIView):
         try:
             user = request.user
             data = request.data
-
             user_obj = Member.objects.get(email=user)
-            # print(user_obj)
             user_obj.member_firstname = data["firstname"]
             user_obj.member_lastname = data["lastname"]
             user_obj.member_phone = data["phone"]
@@ -813,6 +811,32 @@ class TableCount(views.APIView):
             "online": online,
             "offline": offline
         })
+
+
+class UpdateStatusAmount(views.APIView):
+    authentication_classes = [TokenAuthentication, ]
+    permission_classes = [IsAdminUser, ]
+
+    def post(self, request):
+        data = request.data
+        pk = data["id"]
+        name = data["name"]
+        amount = data["amount"]
+
+        if name == "Main":
+            obj = Status.objects.get(id=pk)
+            obj.payment_range = amount
+            obj.date = date.today()
+            obj.save()
+
+        elif name == "General":
+            obj = Status.objects.get(id=pk)
+            obj.payment_range = amount
+            obj.date = date.today()
+            obj.save()
+        else:
+            print("doesn't work")
+        return Response({"OK"})
 
 
 class OnlinePayment(views.APIView):
