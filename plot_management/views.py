@@ -315,17 +315,25 @@ class PlotOwnerAdd(views.APIView):
             member_email = data["owner_email"]
             mem_stat = data["member_status"]
             plot_num = data["plot_no"]
-            query = PlotPosition.objects.get(plot_no=plot_num)
-            road_num = getattr(query, "road_no")
+            member_query = Member.objects.get(id=member_email)
+            email = getattr(member_query, "email")
 
-            serializers.save()
-            owner_obj = TrackPlotOwnership.objects.last()
-            owner_obj.owner_email = Member.objects.get(id=member_email)
-            owner_obj.member_status = Status.objects.get(id=mem_stat)
-            owner_obj.road_no = road_num
-            owner_obj.save()
+            print(member_email, plot_num, mem_stat)
 
-            return Response({"error": False, "message": "Owner Added"})
+            if TrackPlotOwnership.objects.filter(owner_email__email=email, plot_no=plot_num).exists():
+                return Response({"error": True, "message": "Member With Same Plot Already Exists  !!"})
+            else:
+                query = PlotPosition.objects.get(plot_no=plot_num)
+                road_num = getattr(query, "road_no")
+
+                serializers.save()
+                owner_obj = TrackPlotOwnership.objects.last()
+                owner_obj.owner_email = Member.objects.get(id=member_email)
+                owner_obj.member_status = Status.objects.get(id=mem_stat)
+                owner_obj.road_no = road_num
+                owner_obj.save()
+
+                return Response({"error": False, "message": "Owner Added"})
         return Response({"error": True, "message": "Something is wrong"})
 
 
