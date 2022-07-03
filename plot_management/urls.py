@@ -40,7 +40,7 @@ urlpatterns = [
     path('owner_delete/<str:pk>/<str:key>/', OwnerDelete.as_view(), name="owner_delete"),
     path('admin_delete/<str:pk>/<str:key>/', AdminDelete.as_view(), name="admin_delete"),
     path('status_update/', UpdateStatusAmount.as_view(), name="status_update"),
-    path('payment_boolean/<str:pk>/', PaymentBoolean.as_view(), name="payment_boolean"),
+    path('payment_boolean/<str:pk>/<str:plot>/', PaymentBoolean.as_view(), name="payment_boolean"),
 
     path('roadplotview/', RoadPlotView.as_view(), name="roadplotview"),
     path('add_plot_road/', AddPlotRoad.as_view(), name="add_plot_road"),

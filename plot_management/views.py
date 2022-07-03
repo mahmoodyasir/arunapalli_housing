@@ -843,9 +843,9 @@ class PaymentBoolean(views.APIView):
     authentication_classes = [TokenAuthentication, ]
     permission_classes = [IsAdminUser, ]
 
-    def get(self, request, pk):
+    def get(self, request, pk, plot):
         query = TrackMembershipPayment.objects.filter(Q(member_email__member_email__email=pk) |
-                                                      Q(online_email__email__email=pk)).exists()
+                                                      Q(online_email__email__email=pk), plot_no=plot).exists()
         return Response({"message": query})
 
 
@@ -858,16 +858,17 @@ class PlotOwnerUpdate(views.APIView):
 
         pk = data["id"]
         plot_no = data["plot_no"]
+        plot_id = data["plot_id"]
         status_no = data["status_no"]
         bool_delete = data["bool_delete"]
 
         query = TrackPlotOwnership.objects.get(id=pk)
         email = getattr(query, "owner_email")
         obj = TrackMembershipPayment.objects.filter(Q(member_email__member_email__email=email) |
-                                                      Q(online_email__email__email=email)).exists()
-        # print(email)
-        # print(pk, plot_no, status_no, bool_delete)
-
+                                                      Q(online_email__email__email=email), plot_no=plot_id).exists()
+        print(email)
+        print(pk, plot_no, status_no, bool_delete)
+        print(obj)
         if bool_delete == "true":
             print("Bool True")
 
