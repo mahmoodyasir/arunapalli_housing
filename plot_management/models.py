@@ -81,14 +81,6 @@ class PlotPosition(models.Model):
         return self.plot_no
 
 
-class OnetimeMembershipPayment(models.Model):
-    amount = models.CharField(max_length=199)
-    date = models.DateField(auto_now_add=True)
-
-    def __str__(self):
-        return f"{self.amount}=={self.date}"
-
-
 class AdminUserInfo(models.Model):
     admin_email = models.OneToOneField(User, on_delete=models.CASCADE)
     admin_firstname = models.CharField(max_length=200, blank=True, null=True)
@@ -140,6 +132,49 @@ class TrackPlotOwnership(models.Model):
 
     def __str__(self):
         return f"{self.owner_email}=={self.plot_no}=={self.road_no}=={self.member_status}=={self.date}"
+
+
+class TrackDueTable(models.Model):
+    owner_email = models.CharField(max_length=255, null=True, blank=True)
+    start_date = models.DateField(null=True, blank=True)
+    end_date = models.DateField(null=True, blank=True)
+    paid = models.BooleanField(default=False)
+    plot_no = models.CharField(max_length=100, null=True, blank=True)
+    member_status = models.CharField(max_length=100, null=True, blank=True)
+    amount = models.CharField(max_length=255, null=True, blank=True)
+    date = models.DateField(auto_now_add=True, null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.owner_email}=={self.start_date}=={self.end_date}=={self.paid}=={self.plot_no}={self.date}"
+
+
+class BankName(models.Model):
+    name = models.CharField(max_length=255, null=True, blank=True)
+    date = models.DateField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.name}"
+
+
+class OnetimeAmount(models.Model):
+    amount = models.CharField(max_length=255, blank=True, null=True)
+    date = models.DateField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.amount}=={self.date}"
+
+
+class OnetimeMembershipPayment(models.Model):
+    member_email = models.CharField(max_length=255, unique=True, null=True, blank=True)
+    bank_name = models.CharField(max_length=255, null=True, blank=True)
+    cheque_number = models.CharField(max_length=255, unique=True, null=True, blank=True)
+    account_no = models.CharField(max_length=255, null=True, blank=True)
+    member_nid = models.CharField(max_length=200, null=True, blank=True)
+    amount = models.CharField(max_length=199)
+    date = models.DateField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.amount}=={self.date}"
 
 
 class OfflinePayment(models.Model):

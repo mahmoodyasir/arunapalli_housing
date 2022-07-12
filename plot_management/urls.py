@@ -25,6 +25,7 @@ urlpatterns = [
     path('memberapi/', MemberAPI.as_view(), name="memberapi"),
     path('profileview/', ProfileView.as_view(), name="profileview"),
     path('admin_view/', AdminView.as_view(), name="admin_view"),
+    path('payment_due_view/', PaymentDueView.as_view(), name="payment_due_view"),
 
 
     path('statusview/', StatusView.as_view(), name="statusview"),
@@ -41,6 +42,7 @@ urlpatterns = [
     path('admin_delete/<str:pk>/<str:key>/', AdminDelete.as_view(), name="admin_delete"),
     path('status_update/', UpdateStatusAmount.as_view(), name="status_update"),
     path('payment_boolean/<str:pk>/<str:plot>/', PaymentBoolean.as_view(), name="payment_boolean"),
+    path('filter_payment/<str:pk>/<str:start_date>/<str:end_date>/', FilterPayment.as_view(), name="filter_payment"),
 
     path('roadplotview/', RoadPlotView.as_view(), name="roadplotview"),
     path('add_plot_road/', AddPlotRoad.as_view(), name="add_plot_road"),
@@ -61,6 +63,8 @@ urlpatterns = [
     path('member_details/<str:pk>/', MemberDetails.as_view(), name="member_details"),
     path('table_count/', TableCount.as_view(), name="table_count"),
     path('owner_update/', PlotOwnerUpdate.as_view(), name="owner_update"),
+    path('show_payment/', ShowPayment.as_view(), name="show_payment"),
+    path('bank_amount/', BankAndAmount.as_view(), name="bank_amount"),
 
 
     path('sslc/status/', views.sslc_status, name='status'),

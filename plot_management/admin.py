@@ -66,6 +66,12 @@ class MemberHistoryAdmin(admin.ModelAdmin):
     list_per_page = 10
 
 
+class TrackDueTableAdmin(admin.ModelAdmin):
+    search_fields = ['id', 'owner_email']
+    list_display = ['id', 'owner_email', 'start_date', 'end_date', 'paid', 'plot_no', 'member_status', 'amount', 'date']
+    list_per_page = 10
+
+
 admin.site.register(User, UserAdmin)
 admin.site.register(Profile, ProfileAdmin)
 admin.site.register(Status, StatusAdmin)
@@ -82,6 +88,9 @@ admin.site.register(TrackPlotOwnership, TrackPlotOwnershipAdmin)
 admin.site.register(TrackMembershipPayment, TrackMembershipPaymentAdmin)
 admin.site.register(PayOnline, PayOnlineAdmin)
 admin.site.register(MemberHistory, MemberHistoryAdmin)
+admin.site.register(OnetimeAmount)
+admin.site.register(BankName)
+admin.site.register(TrackDueTable, TrackDueTableAdmin)
 
 
 

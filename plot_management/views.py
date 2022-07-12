@@ -248,11 +248,22 @@ class AddMember(views.APIView):
         serializers = MemberSerializer(data=data, context={"request": request})
 
         if serializers.is_valid(raise_exception=True):
-            # mem_stat = data["member_status"]
+            email = data["email"]
+            bank_name = data["bank_name"]
+            cheque = data["cheque_no"]
+            account_no = data["account_no"]
+            member_nid = data["member_nid"]
+            amount = data["amount"]
+
+            OnetimeMembershipPayment.objects.create(
+                member_email=email,
+                bank_name=bank_name,
+                cheque_number=cheque,
+                account_no=account_no,
+                member_nid=member_nid,
+                amount=amount
+            )
             serializers.save()
-            # member_obj = Member.objects.last()
-            # member_obj.member_status = Status.objects.get(id=mem_stat)
-            # member_obj.save()
 
             return Response({"error": False, "message": "Member Added"})
         return Response({"error": True, "message": "Something is wrong"})
@@ -461,6 +472,23 @@ class DateHandle(viewsets.ViewSet):
                 start_date=start_date,
                 end_date=end_date
             )
+
+            obj = TrackPlotOwnership.objects.all()
+
+            for i in range(obj.count()):
+                email = getattr(getattr(obj[i], "owner_email"), "email")
+                plot_no = getattr(obj[i], "plot_no")
+                member_status = getattr(getattr(obj[i], "member_status"), "title")
+                amount = getattr(getattr(obj[i], "member_status"), "payment_range")
+
+                TrackDueTable.objects.create(
+                    owner_email=email,
+                    start_date=start_date,
+                    end_date=end_date,
+                    plot_no=plot_no,
+                    member_status=member_status,
+                    amount=amount
+                )
 
             response_msg = {"error": False, "message": "Date Added"}
         except:
@@ -977,6 +1005,126 @@ class PlotOwnerUpdate(views.APIView):
         return Response({"OK"})
 
 
+class ShowPayment(views.APIView):
+    authentication_classes = [TokenAuthentication, ]
+    permission_classes = [IsAdminUser, ]
+
+    def get(self, request):
+        grand_amount = 0
+        offline_amount = 0
+        pay_online = 0
+        onetime_amount = 0
+
+        query1 = TrackMembershipPayment.objects.exclude(member_email__isnull=True).order_by("-id")
+        serializer1 = TrackMembershipPaymentSerializer(query1, many=True)
+
+        query2 = TrackMembershipPayment.objects.exclude(online_email__isnull=True).order_by("-id")
+        serializer2 = TrackMembershipPaymentSerializer(query2, many=True)
+
+        query3 = OnetimeMembershipPayment.objects.all()
+        serializer3 = OnetimeMembershipPaymentSerializer(query3, many=True)
+
+        obj1 = OfflinePayment.objects.all()
+        obj2 = PayOnline.objects.all()
+        obj3 = OnetimeMembershipPayment.objects.all()
+
+        for i in range(obj1.count()):
+            paid_amount = getattr(obj1[i], "paid_amount")
+            grand_amount += float(paid_amount)
+            offline_amount += float(paid_amount)
+
+        for j in range(obj2.count()):
+            paid_amount = getattr(obj2[j], "paid_amount")
+            grand_amount += float(paid_amount)
+            pay_online = pay_online + float(paid_amount)
+
+        for k in range(obj3.count()):
+            amount = getattr(obj3[k], "amount")
+            grand_amount += float(amount)
+            onetime_amount += float(amount)
+
+        return Response({"offline": serializer1.data, "online": serializer2.data,
+                         "onetime": serializer3.data, "grand_amount": grand_amount, "online_amount": pay_online,
+                         "offline_amount": offline_amount, "onetime_amount": onetime_amount})
+
+
+class FilterPayment(views.APIView):
+    authentication_classes = [TokenAuthentication, ]
+    permission_classes = [IsAdminUser, ]
+
+    def get(self, request, pk, start_date, end_date):
+
+        if pk == "offline":
+            amount = 0
+            offline_query = OfflinePayment.objects.filter(payment_date__range=[start_date, end_date])
+
+            for i in range(offline_query.count()):
+                paid_amount = getattr(offline_query[i], "paid_amount")
+                amount += float(paid_amount)
+            query1 = TrackMembershipPayment.objects.filter(date__range=[start_date, end_date],
+                                                           member_email__isnull=False)
+            offline_serializer = TrackMembershipPaymentSerializer(query1, many=True)
+            return Response({"type": pk, "data": offline_serializer.data, "total": amount})
+
+        elif pk == "online":
+            amount = 0
+            online_query = PayOnline.objects.filter(payment_date__range=[start_date, end_date])
+
+            for i in range(online_query.count()):
+                paid_amount = getattr(online_query[i], "paid_amount")
+                amount += float(paid_amount)
+            query2 = TrackMembershipPayment.objects.filter(date__range=[start_date, end_date],
+                                                           online_email__isnull=False)
+            online_serializer = TrackMembershipPaymentSerializer(query2, many=True)
+            return Response({"type": pk, "data": online_serializer.data, "total": amount})
+
+        elif pk == "onetime":
+            amount = 0
+            onetime_query = OnetimeMembershipPayment.objects.filter(date__range=[start_date, end_date])
+
+            for i in range(onetime_query.count()):
+                paid_amount = getattr(onetime_query[i], "amount")
+                amount += float(paid_amount)
+
+            onetime_serializer = OnetimeMembershipPaymentSerializer(onetime_query, many=True)
+            return Response({"type": pk, "data": onetime_serializer.data, "total": amount})
+
+        return Response({"OK"})
+
+
+class BankAndAmount(views.APIView):
+    authentication_classes = [TokenAuthentication, ]
+    permission_classes = [IsAdminUser, ]
+
+    def get(self, request):
+        query1 = BankName.objects.all().order_by("-id")
+        serializer1 = BankSerializer(query1, many=True)
+
+        query2 = OnetimeAmount.objects.all()
+        serializer2 = OnetimeAmountSerializer(query2, many=True)
+
+        return Response({"bank_name": serializer1.data, "onetime_amount": serializer2.data})
+
+
+class PaymentDueView(views.APIView):
+    permission_classes = [IsAuthenticated, ]
+    authentication_classes = [TokenAuthentication, ]
+
+    def get(self, request):
+        amount = 0
+        user = request.user
+        email = getattr(user, "email")
+
+        track_due = TrackDueTable.objects.filter(owner_email=email, paid=False)
+        serializer = TrackDueTableSerializer(track_due, many=True)
+
+        for i in range(track_due.count()):
+            current_amount = getattr(track_due[i], "amount")
+            amount += float(current_amount)
+
+        return Response({"info": serializer.data, "total_due": amount})
+
+
 class OnlinePayment(views.APIView):
     def post(self, request):
         data = request.data
@@ -1095,6 +1243,14 @@ def sslc_status(request):
                 end_date=end_date
             )
 
+            track_due = TrackDueTable.objects.get(owner_email=value_a, plot_no=value_b, start_date=start_date,
+                                                  end_date=end_date)
+            track_due.paid = True
+            track_due.save()
+
+            return redirect("http://localhost:3000/user_payment_status")
+
+        elif status == "FAILED":
             return redirect("http://localhost:3000/user_payment_status")
 
 
