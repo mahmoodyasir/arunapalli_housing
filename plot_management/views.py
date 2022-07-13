@@ -1125,6 +1125,22 @@ class PaymentDueView(views.APIView):
         return Response({"info": serializer.data, "total_due": amount})
 
 
+class AllDueView(views.APIView):
+    authentication_classes = [TokenAuthentication, ]
+    permission_classes = [IsAdminUser, ]
+
+    def get(self, request):
+        amount = 0
+        query = TrackDueTable.objects.filter(paid=False)
+        serializer = TrackDueTableSerializer(query, many=True)
+
+        for i in range(query.count()):
+            payment_amount = getattr(query[i], "amount")
+            amount += float(payment_amount)
+
+        return Response({"info": serializer.data, "total_due": amount})
+
+
 class OnlinePayment(views.APIView):
     def post(self, request):
         data = request.data

@@ -26,6 +26,7 @@ urlpatterns = [
     path('profileview/', ProfileView.as_view(), name="profileview"),
     path('admin_view/', AdminView.as_view(), name="admin_view"),
     path('payment_due_view/', PaymentDueView.as_view(), name="payment_due_view"),
+    path('all_due_view/', AllDueView.as_view(), name="all_due_view"),
 
 
     path('statusview/', StatusView.as_view(), name="statusview"),
